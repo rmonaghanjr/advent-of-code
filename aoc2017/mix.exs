@@ -8,7 +8,7 @@ defmodule Aoc2017.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      elixirc_paths: ["lib", "lib/aoc2017"]
+      elixirc_paths: ["lib"]
     ]
   end
 
