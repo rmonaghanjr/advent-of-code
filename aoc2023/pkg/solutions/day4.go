@@ -2,7 +2,6 @@ package solutions
 
 import (
     "fmt"
-    "math"
     "os"
     "strconv"
     "strings"
@@ -10,8 +9,7 @@ import (
 
 type ScratchCard struct {
     Id int
-    Numbers []int
-    WinningNumbers []int
+    Matches int
 }
 
 type Node struct {
@@ -22,10 +20,6 @@ type Node struct {
 type Stack struct {
     Length int
     Head *Node
-}
-
-func InitStack() *Stack {
-    return &Stack{0,nil}
 }
 
 func (stack *Stack) Pop() *Node {
@@ -86,25 +80,20 @@ func day4PuzzleInput() []*ScratchCard {
     }
     lines := strings.Split(string(dat), "\n")
 
-    for _, line := range lines {
+    for i, line := range lines {
         if line == "" {
             continue
         }
 
         cardData := strings.Split(line, ": ")
-        cardIdent := strings.Split(cardData[0], " ")
-        cardId := -1
-        if val, err := strconv.Atoi(cardIdent[len(cardIdent)-1]); err == nil {
-            cardId = val
-        }
+        cardId := i+1
         numbers := strings.Split(cardData[1], " | ")
         nums := listAtoi(strings.Split(strings.ReplaceAll(numbers[0], "  ", " "), " "))
         winNums := listAtoi(strings.Split(strings.ReplaceAll(numbers[1], "  ", " "), " "))
 
         cards = append(cards, &ScratchCard{
             cardId,
-            nums,
-            winNums,
+            listIntersection(nums, winNums),
         })
     }
 
@@ -113,7 +102,7 @@ func day4PuzzleInput() []*ScratchCard {
 
 func listIntersection(a []int, b []int) int {
     matches := 0
-    lookup := make(map[int]bool)
+    lookup := make([]bool, 100)
     for _, av := range a {
         lookup[av] = true
     }
@@ -127,24 +116,22 @@ func listIntersection(a []int, b []int) int {
 
 func day4Part1(cards []*ScratchCard) int {
     sum := 0
-
     for _, card := range cards {
-        matches := listIntersection(card.Numbers, card.WinningNumbers)
-        sum += int(math.Pow(2, float64(matches-1)))
+        if card.Matches == 0 {
+            sum += 1
+            continue
+        }
+        sum += 1 << (card.Matches - 1)
     }
-
     return sum
 }
 
 func day4Part2(cards []*ScratchCard) int {
     sum := 0
-
-    stack := InitStack()
+    stack := &Stack{0,nil}
     // build table of all matches for each card
     // add original copy of scratchers to the queue to be processed
-    matchesTable := make(map[int]int)
     for _, card := range cards {
-        matchesTable[card.Id] = listIntersection(card.Numbers, card.WinningNumbers)
         stack.Push(card)
     }
     sum += stack.Length
@@ -153,10 +140,10 @@ func day4Part2(cards []*ScratchCard) int {
     for stack.Length > 0 {
         node := stack.Pop()
 
-        for i := 0; i < matchesTable[node.Data.Id]; i++ {
+        for i := 0; i < node.Data.Matches; i++ {
             stack.Push(cards[node.Data.Id+i])
         }
-        sum += matchesTable[node.Data.Id] 
+        sum += node.Data.Matches
     }
 
     return sum
