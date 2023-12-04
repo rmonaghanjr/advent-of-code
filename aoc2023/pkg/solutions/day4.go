@@ -19,38 +19,34 @@ type Node struct {
     Next *Node
 }
 
-type Queue struct {
+type Stack struct {
     Length int
     Head *Node
-    Tail *Node
 }
 
-func (queue *Queue) Pop() *Node {
-    node := queue.Head
-    queue.Head = queue.Head.Next
-    queue.Length -= 1
+func InitStack() *Stack {
+    return &Stack{0,nil}
+}
+
+func (stack *Stack) Pop() *Node {
+    node := stack.Head
+    stack.Head = stack.Head.Next
+    stack.Length -= 1
     return node
 }
 
-func (queue *Queue) Push(data *ScratchCard) {
+func (stack *Stack) Push(data *ScratchCard) {
     node := &Node{
         data,
-        nil,
+        stack.Head,
     }
 
-    if queue.Head == nil {
-        queue.Head = node
-    }
-
-    if queue.Tail != nil {
-        queue.Tail.Next = node
-    }
-    queue.Tail = node
-    queue.Length += 1
+    stack.Head = node
+    stack.Length += 1
 }
 
-func (queue *Queue) Print() {
-    node := queue.Head
+func (stack *Stack) Print() {
+    node := stack.Head
 
     fmt.Print("{")
     for node != nil {
@@ -68,6 +64,20 @@ func Day4Solution() {
     fmt.Printf("--------------------------\n")
 }
 
+func listAtoi(nums []string) []int {
+    converted := make([]int, 0)
+    for _, n := range nums {
+        if n == "" { continue }
+
+        val, err := strconv.Atoi(n)
+        if err != nil {
+            panic(err)
+        }
+        converted = append(converted, val)
+    }
+    return converted
+}
+
 func day4PuzzleInput() []*ScratchCard {
     cards := make([]*ScratchCard, 0)
     dat, err := os.ReadFile("./test/day4.txt")
@@ -82,37 +92,14 @@ func day4PuzzleInput() []*ScratchCard {
         }
 
         cardData := strings.Split(line, ": ")
+        cardIdent := strings.Split(cardData[0], " ")
         cardId := -1
-        if val, err := strconv.Atoi(strings.Split(cardData[0], " ")[len(strings.Split(cardData[0], " "))-1]); err == nil {
+        if val, err := strconv.Atoi(cardIdent[len(cardIdent)-1]); err == nil {
             cardId = val
         }
         numbers := strings.Split(cardData[1], " | ")
-        nums := make([]int, 0)
-        winNums := make([]int, 0)
-
-        for _, n := range strings.Split(strings.ReplaceAll(numbers[0], "  ", " "), " ") {
-            if n == "" {
-                continue
-            }
-
-            val, err := strconv.Atoi(n)
-            if err != nil {
-                panic(err)
-            }
-            nums = append(nums, val)
-        }
-
-        for _, n := range strings.Split(strings.ReplaceAll(numbers[1], "  ", " "), " ") {
-            if n == "" {
-                continue
-            }
-
-            val, err := strconv.Atoi(n)
-            if err != nil {
-                panic(err)
-            }
-            winNums = append(winNums, val)
-        }
+        nums := listAtoi(strings.Split(strings.ReplaceAll(numbers[0], "  ", " "), " "))
+        winNums := listAtoi(strings.Split(strings.ReplaceAll(numbers[1], "  ", " "), " "))
 
         cards = append(cards, &ScratchCard{
             cardId,
@@ -132,9 +119,8 @@ func listIntersection(a []int, b []int) []int {
     }
 
     for _, bv := range b {
-        if lookup[bv] {
-            matches = append(matches, bv)
-        }
+        if !lookup[bv] { continue } 
+        matches = append(matches, bv)
     }
     return matches
 }
@@ -153,29 +139,26 @@ func day4Part1(cards []*ScratchCard) int {
 func day4Part2(cards []*ScratchCard) int {
     sum := 0
 
-    queue := &Queue{
-        0,
-        nil,
-        nil,
-    }
-    matchesTable := make(map[int][]int)
+    stack := InitStack()
     // build table of all matches for each card
     // add original copy of scratchers to the queue to be processed
+    matchesTable := make(map[int][]int)
     for _, card := range cards {
         matchesTable[card.Id] = listIntersection(card.Numbers, card.WinningNumbers)
-        queue.Push(card)
+        stack.Push(card)
         sum += 1
     }
 
     // bfs to visit all nodes in tree (there will be no cycles, so we can modify the algorithm)
-    for queue.Length > 0 {
-        node := queue.Pop()
+    for stack.Length > 0 {
+        node := stack.Pop()
 
         for i := range matchesTable[node.Data.Id] {
-            queue.Push(cards[node.Data.Id+i])
+            stack.Push(cards[node.Data.Id+i])
             sum += 1
         }
     }
 
     return sum
 }
+
