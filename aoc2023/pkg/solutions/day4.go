@@ -61,9 +61,10 @@ func (queue *Queue) Print() {
 }
 
 func Day4Solution() {
+    cards := day4PuzzleInput()
     fmt.Printf("----- Day 4 Solution -----\n")
-    fmt.Println(" Part 1:", day4Part1())
-    fmt.Println(" Part 2:", day4Part2())
+    fmt.Println(" Part 1:", day4Part1(cards))
+    fmt.Println(" Part 2:", day4Part2(cards))
     fmt.Printf("--------------------------\n")
 }
 
@@ -93,6 +94,7 @@ func day4PuzzleInput() []*ScratchCard {
             if n == "" {
                 continue
             }
+
             val, err := strconv.Atoi(n)
             if err != nil {
                 panic(err)
@@ -122,74 +124,57 @@ func day4PuzzleInput() []*ScratchCard {
     return cards
 }
 
-func day4Part1() int {
+func listIntersection(a []int, b []int) []int {
+    matches := make([]int, 0)
+    lookup := make(map[int]bool)
+    for _, av := range a {
+        lookup[av] = true
+    }
+
+    for _, bv := range b {
+        if lookup[bv] {
+            matches = append(matches, bv)
+        }
+    }
+    return matches
+}
+
+func day4Part1(cards []*ScratchCard) int {
     sum := 0
 
-    cards := day4PuzzleInput()
     for _, card := range cards {
-        winMap := make(map[int]bool)
-        matches := make([]int, 0)
-        for _, num := range card.Numbers {
-            winMap[num] = true
-        }
-
-        for _, winNum := range card.WinningNumbers {
-            if winMap[winNum] {
-                matches = append(matches, winNum)
-
-            }
-        }
+        matches := listIntersection(card.Numbers, card.WinningNumbers)
         sum += int(math.Pow(2, float64(len(matches)-1)))
     }
 
     return sum
 }
 
-func day4Part2() int {
+func day4Part2(cards []*ScratchCard) int {
     sum := 0
-
-    cards := day4PuzzleInput()
-    matchesTable := make(map[int][]int)
-    copiesTable := make(map[int]int)
-    for _, card := range cards {
-        winMap := make(map[int]bool)
-        matches := make([]int, 0)
-        for _, num := range card.Numbers {
-            winMap[num] = true
-        }
-
-        for _, winNum := range card.WinningNumbers {
-            if winMap[winNum] {
-                matches = append(matches, winNum)
-
-            }
-        }
-
-        matchesTable[card.Id] = matches
-    }
 
     queue := &Queue{
         0,
         nil,
         nil,
     }
-
+    matchesTable := make(map[int][]int)
+    // build table of all matches for each card
+    // add original copy of scratchers to the queue to be processed
     for _, card := range cards {
+        matchesTable[card.Id] = listIntersection(card.Numbers, card.WinningNumbers)
         queue.Push(card)
-        copiesTable[card.Id] += 1
+        sum += 1
     }
 
+    // bfs to visit all nodes in tree (there will be no cycles, so we can modify the algorithm)
     for queue.Length > 0 {
         node := queue.Pop()
 
         for i := range matchesTable[node.Data.Id] {
             queue.Push(cards[node.Data.Id+i])
-            copiesTable[node.Data.Id+i+1] += 1
+            sum += 1
         }
-    }
-
-    for _, v := range copiesTable {
-        sum += v
     }
 
     return sum
