@@ -111,8 +111,8 @@ func day4PuzzleInput() []*ScratchCard {
     return cards
 }
 
-func listIntersection(a []int, b []int) []int {
-    matches := make([]int, 0)
+func listIntersection(a []int, b []int) int {
+    matches := 0
     lookup := make(map[int]bool)
     for _, av := range a {
         lookup[av] = true
@@ -120,7 +120,7 @@ func listIntersection(a []int, b []int) []int {
 
     for _, bv := range b {
         if !lookup[bv] { continue } 
-        matches = append(matches, bv)
+        matches += 1
     }
     return matches
 }
@@ -130,7 +130,7 @@ func day4Part1(cards []*ScratchCard) int {
 
     for _, card := range cards {
         matches := listIntersection(card.Numbers, card.WinningNumbers)
-        sum += int(math.Pow(2, float64(len(matches)-1)))
+        sum += int(math.Pow(2, float64(matches-1)))
     }
 
     return sum
@@ -142,21 +142,21 @@ func day4Part2(cards []*ScratchCard) int {
     stack := InitStack()
     // build table of all matches for each card
     // add original copy of scratchers to the queue to be processed
-    matchesTable := make(map[int][]int)
+    matchesTable := make(map[int]int)
     for _, card := range cards {
         matchesTable[card.Id] = listIntersection(card.Numbers, card.WinningNumbers)
         stack.Push(card)
-        sum += 1
     }
+    sum += stack.Length
 
     // bfs to visit all nodes in tree (there will be no cycles, so we can modify the algorithm)
     for stack.Length > 0 {
         node := stack.Pop()
 
-        for i := range matchesTable[node.Data.Id] {
+        for i := 0; i < matchesTable[node.Data.Id]; i++ {
             stack.Push(cards[node.Data.Id+i])
-            sum += 1
         }
+        sum += matchesTable[node.Data.Id] 
     }
 
     return sum
