@@ -12,25 +12,25 @@ type ScratchCard struct {
     Matches int
 }
 
-type Node struct {
+type SCNode struct {
     Data *ScratchCard
-    Next *Node
+    Next *SCNode
 }
 
-type Stack struct {
+type SCStack struct {
     Length int
-    Head *Node
+    Head *SCNode
 }
 
-func (stack *Stack) Pop() *Node {
+func (stack *SCStack) Pop() *SCNode {
     node := stack.Head
     stack.Head = stack.Head.Next
     stack.Length -= 1
     return node
 }
 
-func (stack *Stack) Push(data *ScratchCard) {
-    node := &Node{
+func (stack *SCStack) Push(data *ScratchCard) {
+    node := &SCNode{
         data,
         stack.Head,
     }
@@ -39,7 +39,7 @@ func (stack *Stack) Push(data *ScratchCard) {
     stack.Length += 1
 }
 
-func (stack *Stack) Print() {
+func (stack *SCStack) Print() {
     node := stack.Head
 
     fmt.Print("{")
@@ -128,7 +128,7 @@ func day4Part1(cards []*ScratchCard) int {
 
 func day4Part2(cards []*ScratchCard) int {
     sum := 0
-    stack := &Stack{0,nil}
+    stack := &SCStack{0,nil}
     // build table of all matches for each card
     // add original copy of scratchers to the queue to be processed
     for _, card := range cards {

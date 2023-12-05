@@ -21,6 +21,7 @@ func main() {
         case "day2": solutions.Day2Solution()
         case "day3": solutions.Day3Solution()
         case "day4": solutions.Day4Solution()
+        case "day5": solutions.Day5Solution()
         default:
             fmt.Printf("Day #%d has not been implemented!\n", i+1)
         }
