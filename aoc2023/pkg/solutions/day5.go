@@ -123,6 +123,10 @@ func day5Part1() int {
 }
 
 func day5Part2() int {
+    // TODO: Redo this solution, computing the overlap of ranges and use that list to forward it to the next map
+    //       take smallest number at the end (basically do this but only with the min and max interval numbers,
+    //       as well as the numbers that do not fall into a range
+
     input := day5PuzzleInput()
     final := math.MaxInt
     channel := make(chan int)
